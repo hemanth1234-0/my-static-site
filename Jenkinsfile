@@ -24,7 +24,7 @@ pipeline {
                     sh 'docker rm -f static-site || true'
                     
                
-                    sh 'docker run -d -p 8080:80 --name static-site my-static-site'
+                    sh 'docker run -d -p 8034:80 --name static-site my-static-site'
                 }
             }
         }
