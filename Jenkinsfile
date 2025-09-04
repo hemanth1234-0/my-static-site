@@ -2,9 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = 'myusername/my-static-site:latest'  // Replace with your Docker Hub repo
-        DOCKERHUB_USERNAME = credentials('dockerhub-username') // Jenkins credentials ID
-        DOCKERHUB_PASSWORD = credentials('dockerhub-password') // Jenkins credentials ID
+        DOCKER_IMAGE = 'yourdockerhubusername/my-static-site:latest'  // Replace with your Docker Hub repo
     }
 
     stages {
@@ -16,17 +14,23 @@ pipeline {
             }
         }
 
-        stage('Tag & Push to Docker Hub') {
+        stage('Login & Push to Docker Hub') {
             steps {
                 script {
-                    // Tag the image for Docker Hub
-                    sh "docker tag my-static-site ${DOCKER_IMAGE}"
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD')]) {
+                        
+                        // Tag the image for Docker Hub
+                        sh "docker tag my-static-site ${DOCKER_IMAGE}"
+                        
+                        // Login to Docker Hub
+                        sh "echo \$DOCKERHUB_PASSWORD | docker login -u \$DOCKERHUB_USERNAME --password-stdin"
 
-                    // Login to Docker Hub
-                    sh "echo ${DOCKERHUB_PASSWORD} | docker login -u ${DOCKERHUB_USERNAME} --password-stdin"
+                        // Push the image
+                        sh "docker push ${DOCKER_IMAGE}"
 
-                    // Push the image
-                    sh "docker push ${DOCKER_IMAGE}"
+                        // Logout (optional)
+                        sh 'docker logout'
+                    }
                 }
             }
         }
